@@ -37,6 +37,14 @@
                             $(base.$el).find(base.options.formFieldSelector)
                                 .attr("disabled", true).end()
                                 .append($encryptedElement).submit();
+                            $(base.$el).find(base.options.formFieldSelector).each(function(){
+                                var _this = this;
+                                if(_this.name==base.options.postVariable){
+                                    $(_this).remove();
+                                }else{
+                                    $(_this).removeAttr("disabled");
+                                }
+                            })
                         },
                         function() {
                             // Autenticación con AES Error ... enviar formulario sin protección
