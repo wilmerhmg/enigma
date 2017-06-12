@@ -25,7 +25,8 @@
             }
 
             $submitElement.bind(base.options.submitEvent, function() {
-                $(this).attr("disabled", true);
+                var _sthis = this;
+                $(_sthis).attr("disabled", true);
                 if (base.options.beforeEncryption()) {
                     base.authenticate(
                         function(AESEncryptionKey) {
@@ -43,6 +44,7 @@
                                     $(_this).remove();
                                 }else{
                                     $(_this).removeAttr("disabled");
+                                    $(_sthis).removeAttr("disabled");
                                 }
                             })
                         },
@@ -92,7 +94,6 @@
             var key = base.getKey();
             $.Enigma.authenticateOne(key, base.options.getKeysURL, base.options.handshakeURL, success, failure);
         };
-
         this.UKey = function (){
             return base_key;
         };
@@ -128,14 +129,17 @@
   * @param {function} callback success La función para llamar si la operación ha sido satisfactoria
   * @param {function} callback failure La función de llamada si se ha producido un error
   */
-
+    var base_key = null;
     $.Enigma.authenticate = function(publicKeyURL, handshakeURL, success, failure) {
+        if(!base_key){
+            base_key=$.Enigma.aRandKey(128/4);
+        }
         $.Enigma.getPublicKey(publicKeyURL, function() {
-            $.Enigma.encryptKey($.Enigma.UKey(), function(encryptedKey) {
+            $.Enigma.encryptKey($.Enigma.UKey().toString(), function(encryptedKey) {
                 $.Enigma.handshake(handshakeURL, encryptedKey, function(response) {
-                    if ($.Enigma.challenge(response.challenge, $.Enigma.UKey())) {
+                    if ($.Enigma.challenge(response.challenge, $.Enigma.UKey().toString())) {
                         /*Bindeo en Javascritp .call o .bind (Envia contexto)*/
-                        success.call(this, $.Enigma.UKey());
+                        success.call(this, $.Enigma.UKey().toString());
                     } else {
                         failure.call(this);
                     }
@@ -165,7 +169,7 @@
   * @returns {string} El resultado del descifrado (Plaintext)
   */
     $.Enigma.decrypt = function(data,secret) {
-        return $.Enigma.hex2string(CryptoJS.AES.decrypt(data, secret || $.Enigma.UKey()) + "");
+        return $.Enigma.hex2string(CryptoJS.AES.decrypt(data, secret || $.Enigma.UKey().toString()) + "");
     };
 
     /**
@@ -176,7 +180,7 @@
   */
     $.Enigma.encrypt = function(data,secret) {
         //return CryptoJS.AES.encrypt(data, secret).toString();
-        return CryptoJS.AES.encrypt(data, secret || $.Enigma.UKey()) + "";
+        return CryptoJS.AES.encrypt(data, secret || $.Enigma.UKey().toString()) + "";
     };
 
     /**
@@ -266,10 +270,8 @@
             key = CryptoJS.lib.WordArray.random(128/4);
         }
         var salt = CryptoJS.lib.WordArray.random(128/8);
-        return key.toString();
+        return key;
     };
-    var base_key = null;
-    setTimeout(function(){base_key=$.Enigma.aRandKey(128/4)});
     $.Enigma.UKey = function(){
         return base_key;
     }
