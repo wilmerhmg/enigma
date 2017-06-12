@@ -80,6 +80,12 @@ class enigma{
         exit();
     }
 
+    public static function encrypt($toEncrypt){
+        $key = $_SESSION[self::SESSION_KEY];
+        $encrypted = sqAES::crypt($key, $toEncrypt);
+        return $encrypted;
+    }
+
     public static function decrypt(){
         self::session_start();
         parse_str(sqAES::decrypt($_SESSION[self::SESSION_KEY], $_REQUEST[self::POST_KEY]), $_REQUEST);
